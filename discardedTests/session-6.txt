@@ -1,0 +1,381 @@
+Iteration-1
+
+--------------------Test Case--------------------
+Import Statements:
+import (
+    "context"
+    "io"
+    "strings"
+    "testing"
+    "path/filepath"
+
+    "github.com/stretchr/testify/mock"
+    "github.com/stretchr/testify/require"
+    "github.com/keploy/api-server/pkg/models"
+    "github.com/keploy/api-server/pkg/platform"
+    "go.uber.org/zap"
+)
+
+Required Library Installation
+go get github.com/stretchr/testify
+go get go.uber.org/zap
+
+Test Implementation:
+func TestMockUpload_AdminRole_Success(t *testing.T) {
+    ctx := context.WithValue(context.Background(), models.CustomClaimsKey, models.Claims{
+        Cid:  "test-cid",
+        Role: string(models.UserRoleAdmin),
+    })
+
+    reader := io.NopCloser(strings.NewReader("mock data"))
+    fileName := "mock-file.json"
+    appName := "test-app"
+
+    mockBlobDB := new(platform.BlobDB)
+    mockMockRegistryDB := new(platform.MockRegistryDB)
+    logger := zap.NewNop()
+
+    mockBlobDB.On("Upload", ctx, reader, "test-cid", filepath.Join(appName, fileName)).
+        Return(false, nil)
+
+    mockMockRegistryDB.On("Insert", ctx, models.MockRegistry{
+        Mock:      fileName,
+        App:       appName,
+        Company:   "test-cid",
+        MockType:  models.PRIVATE_MOCK,
+        CreatedAt: mock.AnythingOfType("int"),
+    }).Return(true, nil)
+
+    storage := New(mockBlobDB, mockMockRegistryDB, logger)
+
+    err := storage.MockUpload(ctx, reader, fileName, appName)
+
+    require.NoError(t, err)
+    mockBlobDB.AssertExpectations(t)
+    mockMockRegistryDB.AssertExpectations(t)
+}
+
+
+Error Message:
+pkg/service/storage/storage_test.go:40:20: cannot use mock.AnythingOfType("int") (value of string type mock.AnythingOfTypeArgument) as int value in struct literal
+pkg/service/storage/storage_test.go:43:20: cannot use mockBlobDB (variable of type *"github.com/keploy/api-server/pkg/platform".BlobDB) as "github.com/keploy/api-server/pkg/platform".BlobDB value in argument to New: *"github.com/keploy/api-server/pkg/platform".BlobDB does not implement "github.com/keploy/api-server/pkg/platform".BlobDB (type *"github.com/keploy/api-server/pkg/platform".BlobDB is pointer to interface, not interface)
+pkg/service/storage/storage_test.go:43:32: cannot use mockMockRegistryDB (variable of type *"github.com/keploy/api-server/pkg/platform".MockRegistryDB) as "github.com/keploy/api-server/pkg/platform".MockRegistryDB value in argument to New: *"github.com/keploy/api-server/pkg/platform".MockRegistryDB does not implement "github.com/keploy/api-server/pkg/platform".MockRegistryDB (type *"github.com/keploy/api-server/pkg/platform".MockRegistryDB is pointer to interface, not interface)
+pkg/service/storage/storage_test.go:48:16: mockBlobDB.AssertExpectations undefined (type *"github.com/keploy/api-server/pkg/platform".BlobDB is pointer to interface, not interface)
+pkg/service/storage/storage_test.go:49:24: mockMockRegistryDB.AssertExpectations undefined (type *"github.com/keploy/api-server/pkg/platform".MockRegistryDB is pointer to interface, not interface)
+-------------------------------------------------
+
+--------------------Test Case--------------------
+Import Statements:
+import (
+    "context"
+    "io"
+    "strings"
+    "testing"
+
+    "github.com/stretchr/testify/require"
+    "github.com/keploy/api-server/pkg/models"
+    "github.com/keploy/api-server/pkg/platform"
+    "go.uber.org/zap"
+)
+
+Required Library Installation
+go get github.com/stretchr/testify
+go get go.uber.org/zap
+
+Test Implementation:
+func TestMockUpload_InvalidUser(t *testing.T) {
+    ctx := context.Background() // No claims in context
+
+    reader := io.NopCloser(strings.NewReader("mock data"))
+    fileName := "mock-file.json"
+    appName := "test-app"
+
+    mockBlobDB := new(platform.BlobDB)
+    mockMockRegistryDB := new(platform.MockRegistryDB)
+    logger := zap.NewNop()
+
+    storage := New(mockBlobDB, mockMockRegistryDB, logger)
+
+    err := storage.MockUpload(ctx, reader, fileName, appName)
+
+    require.Error(t, err)
+    require.EqualError(t, err, "invalid user")
+}
+
+
+Error Message:
+pkg/service/storage/storage_test.go:9:5: "github.com/keploy/api-server/pkg/models" imported and not used
+pkg/service/storage/storage_test.go:27:20: cannot use mockBlobDB (variable of type *"github.com/keploy/api-server/pkg/platform".BlobDB) as "github.com/keploy/api-server/pkg/platform".BlobDB value in argument to New: *"github.com/keploy/api-server/pkg/platform".BlobDB does not implement "github.com/keploy/api-server/pkg/platform".BlobDB (type *"github.com/keploy/api-server/pkg/platform".BlobDB is pointer to interface, not interface)
+pkg/service/storage/storage_test.go:27:32: cannot use mockMockRegistryDB (variable of type *"github.com/keploy/api-server/pkg/platform".MockRegistryDB) as "github.com/keploy/api-server/pkg/platform".MockRegistryDB value in argument to New: *"github.com/keploy/api-server/pkg/platform".MockRegistryDB does not implement "github.com/keploy/api-server/pkg/platform".MockRegistryDB (type *"github.com/keploy/api-server/pkg/platform".MockRegistryDB is pointer to interface, not interface)
+-------------------------------------------------
+
+--------------------Test Case--------------------
+Import Statements:
+import (
+    "context"
+    "io"
+    "strings"
+    "testing"
+    "path/filepath"
+
+    "github.com/stretchr/testify/mock"
+    "github.com/stretchr/testify/require"
+    "github.com/keploy/api-server/pkg/models"
+    "github.com/keploy/api-server/pkg/platform"
+    "go.uber.org/zap"
+)
+
+Required Library Installation
+go get github.com/stretchr/testify
+go get go.uber.org/zap
+
+Test Implementation:
+func TestMockDownload_AdminRole_Success(t *testing.T) {
+    ctx := context.WithValue(context.Background(), models.CustomClaimsKey, models.Claims{
+        Cid:  "test-cid",
+        Role: string(models.UserRoleAdmin),
+    })
+
+    fileName := "mock-file.json"
+    appName := "test-app"
+    userName := ""
+
+    mockBlobDB := new(platform.BlobDB)
+    logger := zap.NewNop()
+
+    expectedReader := io.NopCloser(strings.NewReader("mock data"))
+    mockBlobDB.On("Download", ctx, "test-cid", filepath.Join(appName, fileName)).
+        Return(expectedReader, nil)
+
+    storage := New(mockBlobDB, nil, logger)
+
+    reader, err := storage.MockDownload(ctx, fileName, appName, userName)
+
+    require.NoError(t, err)
+    require.NotNil(t, reader)
+    mockBlobDB.AssertExpectations(t)
+}
+
+
+Error Message:
+pkg/service/storage/storage_test.go:9:5: "github.com/stretchr/testify/mock" imported and not used
+pkg/service/storage/storage_test.go:32:16: mockBlobDB.On undefined (type *"github.com/keploy/api-server/pkg/platform".BlobDB is pointer to interface, not interface)
+pkg/service/storage/storage_test.go:35:20: cannot use mockBlobDB (variable of type *"github.com/keploy/api-server/pkg/platform".BlobDB) as "github.com/keploy/api-server/pkg/platform".BlobDB value in argument to New: *"github.com/keploy/api-server/pkg/platform".BlobDB does not implement "github.com/keploy/api-server/pkg/platform".BlobDB (type *"github.com/keploy/api-server/pkg/platform".BlobDB is pointer to interface, not interface)
+pkg/service/storage/storage_test.go:41:16: mockBlobDB.AssertExpectations undefined (type *"github.com/keploy/api-server/pkg/platform".BlobDB is pointer to interface, not interface)
+-------------------------------------------------
+
+--------------------Test Case--------------------
+Import Statements:
+import (
+    "context"
+    "io"
+    "strings"
+    "testing"
+    "path/filepath"
+
+    "github.com/stretchr/testify/mock"
+    "github.com/stretchr/testify/require"
+    "github.com/keploy/api-server/pkg/models"
+    "github.com/keploy/api-server/pkg/platform"
+    "go.uber.org/zap"
+)
+
+Required Library Installation
+go get github.com/stretchr/testify
+go get go.uber.org/zap
+
+Test Implementation:
+func TestMockDownload_UnauthenticatedUser_PublicMocks(t *testing.T) {
+    ctx := context.Background() // No claims in context
+
+    fileName := "mock-file.json"
+    appName := "test-app"
+    userName := ""
+
+    mockBlobDB := new(platform.BlobDB)
+    logger := zap.NewNop()
+
+    expectedReader := io.NopCloser(strings.NewReader("mock data"))
+    mockBlobDB.On("Download", ctx, "public", filepath.Join(userName, appName, fileName)).
+        Return(expectedReader, nil)
+
+    storage := New(mockBlobDB, nil, logger)
+
+    reader, err := storage.MockDownload(ctx, fileName, appName, userName)
+
+    require.NoError(t, err)
+    require.NotNil(t, reader)
+    mockBlobDB.AssertExpectations(t)
+}
+
+
+Error Message:
+pkg/service/storage/storage_test.go:9:5: "github.com/stretchr/testify/mock" imported and not used
+pkg/service/storage/storage_test.go:11:5: "github.com/keploy/api-server/pkg/models" imported and not used
+pkg/service/storage/storage_test.go:29:16: mockBlobDB.On undefined (type *"github.com/keploy/api-server/pkg/platform".BlobDB is pointer to interface, not interface)
+pkg/service/storage/storage_test.go:32:20: cannot use mockBlobDB (variable of type *"github.com/keploy/api-server/pkg/platform".BlobDB) as "github.com/keploy/api-server/pkg/platform".BlobDB value in argument to New: *"github.com/keploy/api-server/pkg/platform".BlobDB does not implement "github.com/keploy/api-server/pkg/platform".BlobDB (type *"github.com/keploy/api-server/pkg/platform".BlobDB is pointer to interface, not interface)
+pkg/service/storage/storage_test.go:38:16: mockBlobDB.AssertExpectations undefined (type *"github.com/keploy/api-server/pkg/platform".BlobDB is pointer to interface, not interface)
+-------------------------------------------------
+
+Iteration-2
+
+--------------------Test Case--------------------
+Import Statements:
+import (
+    "context"
+    "io"
+    "strings"
+    "testing"
+    "path/filepath"
+
+    "github.com/stretchr/testify/mock"
+    "github.com/stretchr/testify/require"
+    "github.com/keploy/api-server/pkg/models"
+    platformMocks "github.com/keploy/api-server/mocks/pkg/platform"
+    "go.uber.org/zap"
+)
+
+Required Library Installation
+go get github.com/stretchr/testify
+go get github.com/vektra/mockery/v2/.../
+
+Test Implementation:
+func TestMockUpload_AdminRole_Success(t *testing.T) {
+    ctx := context.WithValue(context.Background(), models.CustomClaimsKey, models.Claims{
+        Cid:  "test-cid",
+        Role: string(models.UserRoleAdmin),
+    })
+
+    reader := io.NopCloser(strings.NewReader("mock data"))
+    fileName := "mock-file.json"
+    appName := "test-app"
+
+    mockBlobDB := new(platformMocks.BlobDB)
+    mockMockRegistryDB := new(platformMocks.MockRegistryDB)
+    logger := zap.NewNop()
+
+    mockBlobDB.On("Upload", ctx, reader, "test-cid", filepath.Join(appName, fileName)).
+        Return(false, nil)
+
+    mockMockRegistryDB.On("Insert", ctx, models.MockRegistry{
+        Mock:      fileName,
+        App:       appName,
+        Company:   "test-cid",
+        MockType:  models.PRIVATE_MOCK,
+        CreatedAt: mock.AnythingOfType("int"),
+    }).Return(true, nil)
+
+    storage := New(mockBlobDB, mockMockRegistryDB, logger)
+
+    err := storage.MockUpload(ctx, reader, fileName, appName)
+
+    require.NoError(t, err)
+    mockBlobDB.AssertExpectations(t)
+    mockMockRegistryDB.AssertExpectations(t)
+}
+
+
+Error Message:
+pkg/service/storage/storage_test.go:40:20: cannot use mock.AnythingOfType("int") (value of string type mock.AnythingOfTypeArgument) as int value in struct literal
+-------------------------------------------------
+
+--------------------Test Case--------------------
+Import Statements:
+import (
+    "context"
+    "io"
+    "strings"
+    "testing"
+    "path/filepath"
+
+    "github.com/stretchr/testify/mock"
+    "github.com/stretchr/testify/require"
+    "github.com/keploy/api-server/pkg/models"
+    platformMocks "github.com/keploy/api-server/mocks/pkg/platform"
+    "go.uber.org/zap"
+)
+
+Required Library Installation
+go get github.com/stretchr/testify
+go get github.com/vektra/mockery/v2/.../
+
+Test Implementation:
+func TestMockDownload_AdminRole_Success(t *testing.T) {
+    ctx := context.WithValue(context.Background(), models.CustomClaimsKey, models.Claims{
+        Cid:  "test-cid",
+        Role: string(models.UserRoleAdmin),
+    })
+
+    fileName := "mock-file.json"
+    appName := "test-app"
+    userName := ""
+
+    mockBlobDB := new(platformMocks.BlobDB)
+    logger := zap.NewNop()
+
+    expectedReader := io.NopCloser(strings.NewReader("mock data"))
+    mockBlobDB.On("Download", ctx, "test-cid", filepath.Join(appName, fileName)).
+        Return(expectedReader, nil)
+
+    storage := New(mockBlobDB, nil, logger)
+
+    reader, err := storage.MockDownload(ctx, fileName, appName, userName)
+
+    require.NoError(t, err)
+    require.NotNil(t, reader)
+    mockBlobDB.AssertExpectations(t)
+}
+
+
+Error Message:
+pkg/service/storage/storage_test.go:13:5: "github.com/stretchr/testify/mock" imported and not used
+-------------------------------------------------
+
+--------------------Test Case--------------------
+Import Statements:
+import (
+    "context"
+    "io"
+    "strings"
+    "testing"
+    "path/filepath"
+
+    "github.com/stretchr/testify/mock"
+    "github.com/stretchr/testify/require"
+    platformMocks "github.com/keploy/api-server/mocks/pkg/platform"
+    "go.uber.org/zap"
+)
+
+Required Library Installation
+go get github.com/stretchr/testify
+go get github.com/vektra/mockery/v2/.../
+
+Test Implementation:
+func TestMockDownload_UnauthenticatedUser_PublicMocks(t *testing.T) {
+    ctx := context.Background() // No claims in context
+
+    fileName := "mock-file.json"
+    appName := "test-app"
+    userName := ""
+
+    mockBlobDB := new(platformMocks.BlobDB)
+    logger := zap.NewNop()
+
+    expectedReader := io.NopCloser(strings.NewReader("mock data"))
+    mockBlobDB.On("Download", ctx, "public", filepath.Join(userName, appName, fileName)).
+        Return(expectedReader, nil)
+
+    storage := New(mockBlobDB, nil, logger)
+
+    reader, err := storage.MockDownload(ctx, fileName, appName, userName)
+
+    require.NoError(t, err)
+    require.NotNil(t, reader)
+    mockBlobDB.AssertExpectations(t)
+}
+
+
+Error Message:
+pkg/service/storage/storage_test.go:13:5: "github.com/stretchr/testify/mock" imported and not used
+-------------------------------------------------
+

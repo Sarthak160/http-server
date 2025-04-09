@@ -1,0 +1,199 @@
+Iteration-1
+
+--------------------Test Case--------------------
+Import Statements:
+import (
+    "context"
+    "testing"
+    "github.com/stretchr/testify/assert"
+    "github.com/stretchr/testify/require"
+    "github.com/stretchr/testify/mock"
+    "go.uber.org/zap"
+)
+
+Required Library Installation
+go get github.com/stretchr/testify
+go get go.uber.org/zap
+
+Test Implementation:
+func TestPublishSuccess(t *testing.T) {
+    logger := zap.NewNop()
+    scheduler := NewCommandScheduler(logger)
+    ctx := context.Background()
+
+    err := scheduler.QueueDeclare(ctx, "test-id")
+    require.NoError(t, err)
+
+    task := &MockDataCarrier{}
+    task.On("GetObjectType").Return("mock-type")
+
+    err = scheduler.Publish(ctx, "test-id", task)
+    require.NoError(t, err)
+    task.AssertExpectations(t)
+}
+
+
+Error Message:
+pkg/service/command/command_test.go:11:5: "github.com/stretchr/testify/mock" imported and not used
+pkg/service/command/command_test.go:46:14: undefined: MockDataCarrier
+-------------------------------------------------
+
+Iteration-2
+
+--------------------Test Case--------------------
+Import Statements:
+import "github.com/stretchr/testify/mock"
+
+Required Library Installation
+go get github.com/stretchr/testify
+
+Test Implementation:
+func TestPublishSuccess(t *testing.T) {
+    logger := zap.NewNop()
+    scheduler := NewCommandScheduler(logger)
+    ctx := context.Background()
+
+    err := scheduler.QueueDeclare(ctx, "test-id")
+    require.NoError(t, err)
+
+    task := new(MockDataCarrier)
+    task.On("GetObjectType").Return("mock-type")
+
+    err = scheduler.Publish(ctx, "test-id", task)
+    require.NoError(t, err)
+    task.AssertExpectations(t)
+}
+
+
+Error Message:
+pkg/service/command/command_test.go:11:5: "github.com/stretchr/testify/mock" imported and not used
+pkg/service/command/command_test.go:72:17: undefined: MockDataCarrier
+-------------------------------------------------
+
+Iteration-3
+
+--------------------Test Case--------------------
+Import Statements:
+import "github.com/stretchr/testify/mock"
+
+Required Library Installation
+go get github.com/stretchr/testify
+
+Test Implementation:
+func TestPublishSuccess(t *testing.T) {
+    logger := zap.NewNop()
+    scheduler := NewCommandScheduler(logger)
+    ctx := context.Background()
+
+    // Declare a queue
+    err := scheduler.QueueDeclare(ctx, "test-id")
+    require.NoError(t, err)
+
+    // Mock the DataCarrier interface
+    task := new(MockDataCarrier)
+    task.On("GetObjectType").Return("mock-type")
+
+    // Publish a task to the declared queue
+    err = scheduler.Publish(ctx, "test-id", task)
+    require.NoError(t, err)
+
+    // Assert that the mock expectations are met
+    task.AssertExpectations(t)
+}
+
+
+Error Message:
+pkg/service/command/command_test.go:11:5: "github.com/stretchr/testify/mock" imported and not used
+pkg/service/command/command_test.go:74:17: undefined: MockDataCarrier
+-------------------------------------------------
+
+Iteration-4
+
+--------------------Test Case--------------------
+Import Statements:
+import (
+    "context"
+    "testing"
+
+    "github.com/stretchr/testify/assert"
+    "github.com/stretchr/testify/mock"
+    "github.com/stretchr/testify/require"
+    "go.uber.org/zap"
+)
+
+Required Library Installation
+go get github.com/stretchr/testify
+
+Test Implementation:
+func TestPublishSuccess(t *testing.T) {
+    logger := zap.NewNop()
+    scheduler := NewCommandScheduler(logger)
+    ctx := context.Background()
+
+    // Declare a queue
+    err := scheduler.QueueDeclare(ctx, "test-id")
+    require.NoError(t, err)
+
+    // Mock the DataCarrier interface
+    task := new(MockDataCarrier)
+    task.On("GetObjectType").Return("mock-type")
+
+    // Publish a task to the declared queue
+    err = scheduler.Publish(ctx, "test-id", task)
+    require.NoError(t, err)
+
+    // Assert that the mock expectations are met
+    task.AssertExpectations(t)
+}
+
+
+Error Message:
+pkg/service/command/command_test.go:11:5: "github.com/stretchr/testify/mock" imported and not used
+pkg/service/command/command_test.go:74:17: undefined: MockDataCarrier
+-------------------------------------------------
+
+Iteration-5
+
+--------------------Test Case--------------------
+Import Statements:
+import (
+    "context"
+    "testing"
+
+    "github.com/stretchr/testify/assert"
+    "github.com/stretchr/testify/mock"
+    "github.com/stretchr/testify/require"
+    "go.uber.org/zap"
+)
+
+Required Library Installation
+go get github.com/stretchr/testify
+
+Test Implementation:
+func TestPublishSuccess(t *testing.T) {
+    logger := zap.NewNop()
+    scheduler := NewCommandScheduler(logger)
+    ctx := context.Background()
+
+    // Declare a queue
+    err := scheduler.QueueDeclare(ctx, "test-id")
+    require.NoError(t, err)
+
+    // Mock the DataCarrier interface
+    task := new(MockDataCarrier)
+    task.On("GetObjectType").Return("mock-type")
+
+    // Publish a task to the declared queue
+    err = scheduler.Publish(ctx, "test-id", task)
+    require.NoError(t, err)
+
+    // Assert that the mock expectations are met
+    task.AssertExpectations(t)
+}
+
+
+Error Message:
+pkg/service/command/command_test.go:11:5: "github.com/stretchr/testify/mock" imported and not used
+pkg/service/command/command_test.go:74:17: undefined: MockDataCarrier
+-------------------------------------------------
+

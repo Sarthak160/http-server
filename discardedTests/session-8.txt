@@ -1,0 +1,258 @@
+Iteration-1
+
+--------------------Test Case--------------------
+Import Statements:
+import (
+    "context"
+    "testing"
+    "github.com/stretchr/testify/mock"
+    "github.com/stretchr/testify/require"
+    platformMocks "github.com/keploy/api-server/mocks/pkg/platform"
+    "go.uber.org/zap"
+)
+
+Required Library Installation
+go get github.com/stretchr/testify
+go get go.uber.org/zap
+
+Test Implementation:
+func TestConnectuser(t *testing.T) {
+    ctx := context.Background()
+    userID := "test-user-id"
+    cid := "test-cid"
+    installationID := "test-installation-id"
+
+    mockUserDB := new(platformMocks.UserDB)
+    mockLogger := zap.NewNop()
+
+    mockUserDB.On("UpdateInstallationID", ctx, userID, cid, installationID).Return(nil)
+
+    service := &userService{
+        udb:    mockUserDB,
+        logger: mockLogger,
+    }
+
+    err := service.Connectuser(ctx, userID, cid, installationID)
+
+    require.NoError(t, err)
+    mockUserDB.AssertExpectations(t)
+}
+
+
+Error Message:
+pkg/service/user/user_test.go:6:5: "github.com/stretchr/testify/mock" imported and not used
+-------------------------------------------------
+
+--------------------Test Case--------------------
+Import Statements:
+import (
+    "context"
+    "testing"
+    "github.com/stretchr/testify/mock"
+    "github.com/stretchr/testify/require"
+    platformMocks "github.com/keploy/api-server/mocks/pkg/platform"
+    "github.com/keploy/api-server/pkg/models"
+    "go.uber.org/zap"
+)
+
+Required Library Installation
+go get github.com/stretchr/testify
+go get go.uber.org/zap
+
+Test Implementation:
+func TestSubscribeUser(t *testing.T) {
+    ctx := context.Background()
+    guestUser := models.GuestUser{
+        ID:       "guest-id",
+        FullName: "Guest User",
+        Email:    "guest@example.com",
+    }
+
+    mockUserDB := new(platformMocks.UserDB)
+    mockLogger := zap.NewNop()
+
+    mockUserDB.On("AddSubscription", ctx, &guestUser).Return(true, nil)
+
+    service := &userService{
+        udb:    mockUserDB,
+        logger: mockLogger,
+    }
+
+    isAdded, err := service.SubscribeUser(ctx, guestUser)
+
+    require.NoError(t, err)
+    require.True(t, isAdded)
+    mockUserDB.AssertExpectations(t)
+}
+
+
+Error Message:
+pkg/service/user/user_test.go:6:5: "github.com/stretchr/testify/mock" imported and not used
+-------------------------------------------------
+
+--------------------Test Case--------------------
+Import Statements:
+import (
+    "context"
+    "testing"
+    "github.com/stretchr/testify/mock"
+    "github.com/stretchr/testify/require"
+    platformMocks "github.com/keploy/api-server/mocks/pkg/platform"
+    "github.com/keploy/api-server/pkg/models"
+    "go.uber.org/zap"
+)
+
+Required Library Installation
+go get github.com/stretchr/testify
+go get go.uber.org/zap
+
+Test Implementation:
+func TestGetByKey(t *testing.T) {
+    ctx := context.Background()
+    apiKey := "test-api-key"
+    expectedUser := &models.User{
+        ID:    "user-id",
+        Email: "user@example.com",
+    }
+
+    mockUserDB := new(platformMocks.UserDB)
+    mockLogger := zap.NewNop()
+
+    mockUserDB.On("FindByKey", ctx, apiKey).Return(expectedUser, nil)
+
+    service := &userService{
+        udb:    mockUserDB,
+        logger: mockLogger,
+    }
+
+    user, err := service.GetByKey(ctx, apiKey)
+
+    require.NoError(t, err)
+    require.Equal(t, expectedUser, user)
+    mockUserDB.AssertExpectations(t)
+}
+
+
+Error Message:
+pkg/service/user/user_test.go:6:5: "github.com/stretchr/testify/mock" imported and not used
+-------------------------------------------------
+
+--------------------Test Case--------------------
+Import Statements:
+import (
+    "context"
+    "testing"
+    "github.com/stretchr/testify/mock"
+    "github.com/stretchr/testify/require"
+    platformMocks "github.com/keploy/api-server/mocks/pkg/platform"
+    "github.com/keploy/api-server/pkg/models"
+    "go.uber.org/zap"
+)
+
+Required Library Installation
+go get github.com/stretchr/testify
+go get go.uber.org/zap
+
+Test Implementation:
+func TestCreate(t *testing.T) {
+    ctx := context.WithValue(context.Background(), models.CustomClaimsKey, models.Claims{
+        Cid:   "test-cid",
+        Email: "admin@example.com",
+    })
+    user := models.User{
+        Name:  "Test User",
+        Email: "test@example.com",
+        Role:  models.UserRoleUser,
+    }
+    admin := &models.User{
+        Email: "admin@example.com",
+    }
+    expectedUser := &models.User{
+        ID:          "generated-id",
+        Name:        user.Name,
+        Email:       user.Email,
+        Role:        user.Role,
+        APIKey:      "generated-api-key",
+        CreatedBy:   admin.Email,
+        Status:      models.UserStatusActive,
+        Cid:         "test-cid",
+        PastKeys:    make(map[string]string),
+    }
+
+    mockUserDB := new(platformMocks.UserDB)
+    mockLogger := zap.NewNop()
+
+    mockUserDB.On("FindByEmail", ctx, admin.Email).Return(admin, nil)
+    mockUserDB.On("Create", ctx, mock.AnythingOfType("*models.User"), false).Return(true, nil)
+
+    service := &userService{
+        udb:    mockUserDB,
+        logger: mockLogger,
+    }
+
+    created, err := service.Create(ctx, user)
+
+    require.NoError(t, err)
+    require.True(t, created)
+    mockUserDB.AssertExpectations(t)
+}
+
+
+Error Message:
+pkg/service/user/user_test.go:28:5: declared and not used: expectedUser
+-------------------------------------------------
+
+Iteration-2
+
+--------------------Test Case--------------------
+Import Statements:
+import (
+    "context"
+    "testing"
+    "github.com/stretchr/testify/require"
+    platformMocks "github.com/keploy/api-server/mocks/pkg/platform"
+    "go.uber.org/zap"
+    "github.com/keploy/api-server/pkg/models"
+)
+
+Required Library Installation
+go get github.com/stretchr/testify
+
+Test Implementation:
+func TestCreate(t *testing.T) {
+    ctx := context.WithValue(context.Background(), models.CustomClaimsKey, models.Claims{
+        Cid:   "test-cid",
+        Email: "admin@example.com",
+    })
+    user := models.User{
+        Name:  "Test User",
+        Email: "test@example.com",
+        Role:  models.UserRoleUser,
+    }
+    admin := &models.User{
+        Email: "admin@example.com",
+    }
+
+    mockUserDB := new(platformMocks.UserDB)
+    mockLogger := zap.NewNop()
+
+    mockUserDB.On("FindByEmail", ctx, admin.Email).Return(admin, nil)
+    mockUserDB.On("Create", ctx, mock.AnythingOfType("*models.User"), false).Return(true, nil)
+
+    service := &userService{
+        udb:    mockUserDB,
+        logger: mockLogger,
+    }
+
+    created, err := service.Create(ctx, user)
+
+    require.NoError(t, err)
+    require.True(t, created)
+    mockUserDB.AssertExpectations(t)
+}
+
+
+Error Message:
+pkg/service/user/user_test.go:108:34: undefined: mock
+-------------------------------------------------
+

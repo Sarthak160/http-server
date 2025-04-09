@@ -1,0 +1,95 @@
+Iteration-2
+
+--------------------Test Case--------------------
+Import Statements:
+import (
+    "context"
+    "testing"
+
+    mockPlatform "github.com/keploy/api-server/mocks/pkg/platform"
+    "github.com/keploy/api-server/pkg/models"
+    "github.com/stretchr/testify/assert"
+    "github.com/stretchr/testify/require"
+    "go.uber.org/zap"
+)
+
+Required Library Installation
+go get github.com/stretchr/testify
+
+Test Implementation:
+func TestFindLastCreated_Success(t *testing.T) {
+    ctx := context.Background()
+    appID := "app-id"
+
+    mockTestSetDB := new(mockPlatform.TestSetDB)
+    mockLogger := zap.NewNop()
+
+    expectedTestSet := models.TestSet{
+        ID:    "last-created-id",
+        Name:  "Last Created Test Set",
+        AppID: appID,
+    }
+
+    mockTestSetDB.On("FindLastCreated", ctx, appID).
+        Return(expectedTestSet, nil)
+
+    service := &testSetService{
+        testSetDb: mockTestSetDB,
+        logger:    mockLogger,
+    }
+
+    testSet, err := service.FindLastCreated(ctx, appID)
+
+    require.NoError(t, err)
+    assert.Equal(t, expectedTestSet, testSet)
+
+    mockTestSetDB.AssertExpectations(t)
+}
+
+
+-------------------------------------------------
+
+--------------------Test Case--------------------
+Import Statements:
+import (
+    "context"
+    "errors"
+    "testing"
+
+    mockPlatform "github.com/keploy/api-server/mocks/pkg/platform"
+    "github.com/keploy/api-server/pkg/models"
+    "github.com/stretchr/testify/assert"
+    "github.com/stretchr/testify/require"
+    "go.uber.org/zap"
+)
+
+Required Library Installation
+go get github.com/stretchr/testify
+
+Test Implementation:
+func TestFindLastCreated_Error(t *testing.T) {
+    ctx := context.Background()
+    appID := "app-id"
+
+    mockTestSetDB := new(mockPlatform.TestSetDB)
+    mockLogger := zap.NewNop()
+
+    mockTestSetDB.On("FindLastCreated", ctx, appID).
+        Return(models.TestSet{}, errors.New("database error"))
+
+    service := &testSetService{
+        testSetDb: mockTestSetDB,
+        logger:    mockLogger,
+    }
+
+    testSet, err := service.FindLastCreated(ctx, appID)
+
+    require.Error(t, err)
+    assert.Equal(t, models.TestSet{}, testSet)
+
+    mockTestSetDB.AssertExpectations(t)
+}
+
+
+-------------------------------------------------
+

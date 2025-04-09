@@ -1,0 +1,388 @@
+Iteration-1
+
+--------------------Test Case--------------------
+Import Statements:
+import (
+    "context"
+    "errors"
+    "testing"
+
+    "github.com/stretchr/testify/mock"
+    "github.com/stretchr/testify/require"
+    "github.com/keploy/api-server/pkg/models"
+    "github.com/keploy/api-server/pkg/platform"
+    "go.uber.org/zap"
+)
+
+Required Library Installation
+go get github.com/stretchr/testify
+
+Test Implementation:
+func TestCreate_NewTestCase(t *testing.T) {
+    ctx := context.Background()
+
+    // Mock dependencies
+    mockTestCaseDB := new(platform.MockTestCaseDB)
+    mockLogger := zap.NewNop()
+
+    // Input test case
+    inputTestCase := &models.TestCase{
+        ID:        "test-id",
+        TestSetID: "test-set-id",
+        Data:      models.TestCase{ID: "data-id", Name: "test-name"},
+    }
+
+    // Mock behavior
+    mockTestCaseDB.On("FindByTestSetIDAndTestCaseName", ctx, inputTestCase.Data.Name, inputTestCase.TestSetID).
+        Return(models.TestCase{}, errors.New("not found"))
+
+    // Create service
+    service := &testcaseService{
+        testCaseDb: mockTestCaseDB,
+        logger:     mockLogger,
+    }
+
+    // Call the method
+    result, created, err := service.Create(ctx, inputTestCase, "")
+
+    // Assertions
+    require.NoError(t, err)
+    require.True(t, created)
+    require.Equal(t, inputTestCase, result)
+
+    // Verify expectations
+    mockTestCaseDB.AssertExpectations(t)
+}
+
+
+Error Message:
+pkg/service/record/testcase_test.go:7:5: "github.com/stretchr/testify/mock" imported and not used
+pkg/service/record/testcase_test.go:20:36: undefined: platform.MockTestCaseDB
+pkg/service/record/testcase_test.go:27:20: cannot use models.TestCase{…} (value of struct type "github.com/keploy/api-server/pkg/models".TestCase) as "go.keploy.io/server/v2/pkg/models".TestCase value in struct literal
+pkg/service/record/testcase_test.go:27:51: unknown field Name in struct literal of type "github.com/keploy/api-server/pkg/models".TestCase
+-------------------------------------------------
+
+--------------------Test Case--------------------
+Import Statements:
+import (
+    "context"
+    "errors"
+    "testing"
+
+    "github.com/stretchr/testify/mock"
+    "github.com/stretchr/testify/require"
+    "github.com/keploy/api-server/pkg/models"
+    "github.com/keploy/api-server/pkg/platform"
+    "go.uber.org/zap"
+)
+
+Required Library Installation
+go get github.com/stretchr/testify
+
+Test Implementation:
+func TestCreate_ExistingTestCase(t *testing.T) {
+    ctx := context.Background()
+
+    // Mock dependencies
+    mockTestCaseDB := new(platform.MockTestCaseDB)
+    mockLogger := zap.NewNop()
+
+    // Input test case
+    inputTestCase := &models.TestCase{
+        ID:        "test-id",
+        TestSetID: "test-set-id",
+        Data:      models.TestCase{ID: "data-id", Name: "test-name"},
+    }
+
+    // Existing test case
+    existingTestCase := models.TestCase{
+        ID:        "existing-id",
+        TestSetID: "test-set-id",
+        Data:      models.TestCase{ID: "data-id", Name: "test-name"},
+    }
+
+    // Mock behavior
+    mockTestCaseDB.On("FindByTestSetIDAndTestCaseName", ctx, inputTestCase.Data.Name, inputTestCase.TestSetID).
+        Return(existingTestCase, nil)
+
+    // Create service
+    service := &testcaseService{
+        testCaseDb: mockTestCaseDB,
+        logger:     mockLogger,
+    }
+
+    // Call the method
+    result, created, err := service.Create(ctx, inputTestCase, "")
+
+    // Assertions
+    require.NoError(t, err)
+    require.False(t, created)
+    require.Equal(t, &existingTestCase, result)
+
+    // Verify expectations
+    mockTestCaseDB.AssertExpectations(t)
+}
+
+
+Error Message:
+pkg/service/record/testcase_test.go:5:5: "errors" imported and not used
+pkg/service/record/testcase_test.go:7:5: "github.com/stretchr/testify/mock" imported and not used
+pkg/service/record/testcase_test.go:20:36: undefined: platform.MockTestCaseDB
+pkg/service/record/testcase_test.go:27:20: cannot use models.TestCase{…} (value of struct type "github.com/keploy/api-server/pkg/models".TestCase) as "go.keploy.io/server/v2/pkg/models".TestCase value in struct literal
+pkg/service/record/testcase_test.go:27:51: unknown field Name in struct literal of type "github.com/keploy/api-server/pkg/models".TestCase
+pkg/service/record/testcase_test.go:34:20: cannot use models.TestCase{…} (value of struct type "github.com/keploy/api-server/pkg/models".TestCase) as "go.keploy.io/server/v2/pkg/models".TestCase value in struct literal
+pkg/service/record/testcase_test.go:34:51: unknown field Name in struct literal of type "github.com/keploy/api-server/pkg/models".TestCase
+-------------------------------------------------
+
+--------------------Test Case--------------------
+Import Statements:
+import (
+    "context"
+    "testing"
+
+    "github.com/stretchr/testify/mock"
+    "github.com/stretchr/testify/require"
+    "github.com/keploy/api-server/pkg/models"
+    "github.com/keploy/api-server/pkg/platform"
+    "go.uber.org/zap"
+)
+
+Required Library Installation
+go get github.com/stretchr/testify
+
+Test Implementation:
+func TestCreateMany(t *testing.T) {
+    ctx := context.Background()
+
+    // Mock dependencies
+    mockTestCaseDB := new(platform.MockTestCaseDB)
+    mockLogger := zap.NewNop()
+
+    // Input test cases
+    inputTestCases := []models.TestCase{
+        {ID: "test-id-1", TestSetID: "test-set-id-1"},
+        {ID: "test-id-2", TestSetID: "test-set-id-2"},
+    }
+
+    // Mock behavior
+    mockTestCaseDB.On("InsertMany", ctx, inputTestCases).
+        Return(true, nil)
+
+    // Create service
+    service := &testcaseService{
+        testCaseDb: mockTestCaseDB,
+        logger:     mockLogger,
+    }
+
+    // Call the method
+    success, err := service.CreateMany(ctx, inputTestCases, "")
+
+    // Assertions
+    require.NoError(t, err)
+    require.True(t, success)
+
+    // Verify expectations
+    mockTestCaseDB.AssertExpectations(t)
+}
+
+
+Error Message:
+pkg/service/record/testcase_test.go:6:5: "github.com/stretchr/testify/mock" imported and not used
+pkg/service/record/testcase_test.go:19:36: undefined: platform.MockTestCaseDB
+-------------------------------------------------
+
+Iteration-2
+
+--------------------Test Case--------------------
+Import Statements:
+import (
+    "context"
+    "errors"
+    "testing"
+
+    "github.com/stretchr/testify/mock"
+    "github.com/stretchr/testify/require"
+    "go.uber.org/zap"
+
+    keployModels "go.keploy.io/server/v2/pkg/models"
+    platformMocks "github.com/keploy/api-server/mocks/pkg/platform"
+    "github.com/keploy/api-server/pkg/models"
+)
+
+Required Library Installation
+go get github.com/stretchr/testify
+go get go.uber.org/zap
+
+Test Implementation:
+func TestCreate_NewTestCase(t *testing.T) {
+    ctx := context.Background()
+
+    // Mock dependencies
+    mockTestCaseDB := new(platformMocks.TestCaseDB)
+    mockLogger := zap.NewNop()
+
+    // Input test case
+    inputTestCase := &models.TestCase{
+        ID:        "test-id",
+        TestSetID: "test-set-id",
+        Data:      keployModels.TestCase{ID: "data-id", Name: "test-name"},
+    }
+
+    // Mock behavior
+    mockTestCaseDB.On("FindByTestSetIDAndTestCaseName", ctx, inputTestCase.Data.Name, inputTestCase.TestSetID).
+        Return(keployModels.TestCase{}, errors.New("not found"))
+
+    // Create service
+    service := &testcaseService{
+        testCaseDb: mockTestCaseDB,
+        logger:     mockLogger,
+    }
+
+    // Call the method
+    result, created, err := service.Create(ctx, inputTestCase, "")
+
+    // Assertions
+    require.NoError(t, err)
+    require.True(t, created)
+    require.Equal(t, inputTestCase, result)
+
+    // Verify expectations
+    mockTestCaseDB.AssertExpectations(t)
+}
+
+
+Error Message:
+pkg/service/record/testcase_test.go:7:5: "github.com/stretchr/testify/mock" imported and not used
+pkg/service/record/testcase_test.go:28:42: unknown field ID in struct literal of type "go.keploy.io/server/v2/pkg/models".TestCase
+-------------------------------------------------
+
+--------------------Test Case--------------------
+Import Statements:
+import (
+    "context"
+    "errors"
+    "testing"
+
+    "github.com/stretchr/testify/mock"
+    "github.com/stretchr/testify/require"
+    "go.uber.org/zap"
+
+    keployModels "go.keploy.io/server/v2/pkg/models"
+    platformMocks "github.com/keploy/api-server/mocks/pkg/platform"
+    "github.com/keploy/api-server/pkg/models"
+)
+
+Required Library Installation
+go get github.com/stretchr/testify
+go get go.uber.org/zap
+
+Test Implementation:
+func TestCreate_ExistingTestCase(t *testing.T) {
+    ctx := context.Background()
+
+    // Mock dependencies
+    mockTestCaseDB := new(platformMocks.TestCaseDB)
+    mockLogger := zap.NewNop()
+
+    // Input test case
+    inputTestCase := &models.TestCase{
+        ID:        "test-id",
+        TestSetID: "test-set-id",
+        Data:      keployModels.TestCase{ID: "data-id", Name: "test-name"},
+    }
+
+    // Existing test case
+    existingTestCase := models.TestCase{
+        ID:        "existing-id",
+        TestSetID: "test-set-id",
+        Data:      keployModels.TestCase{ID: "data-id", Name: "test-name"},
+    }
+
+    // Mock behavior
+    mockTestCaseDB.On("FindByTestSetIDAndTestCaseName", ctx, inputTestCase.Data.Name, inputTestCase.TestSetID).
+        Return(existingTestCase, nil)
+
+    // Create service
+    service := &testcaseService{
+        testCaseDb: mockTestCaseDB,
+        logger:     mockLogger,
+    }
+
+    // Call the method
+    result, created, err := service.Create(ctx, inputTestCase, "")
+
+    // Assertions
+    require.NoError(t, err)
+    require.False(t, created)
+    require.Equal(t, &existingTestCase, result)
+
+    // Verify expectations
+    mockTestCaseDB.AssertExpectations(t)
+}
+
+
+Error Message:
+pkg/service/record/testcase_test.go:5:5: "errors" imported and not used
+pkg/service/record/testcase_test.go:7:5: "github.com/stretchr/testify/mock" imported and not used
+pkg/service/record/testcase_test.go:28:42: unknown field ID in struct literal of type "go.keploy.io/server/v2/pkg/models".TestCase
+pkg/service/record/testcase_test.go:35:42: unknown field ID in struct literal of type "go.keploy.io/server/v2/pkg/models".TestCase
+-------------------------------------------------
+
+--------------------Test Case--------------------
+Import Statements:
+import (
+    "context"
+    "testing"
+
+    "github.com/stretchr/testify/mock"
+    "github.com/stretchr/testify/require"
+    "go.uber.org/zap"
+
+    platformMocks "github.com/keploy/api-server/mocks/pkg/platform"
+    "github.com/keploy/api-server/pkg/models"
+)
+
+Required Library Installation
+go get github.com/stretchr/testify
+go get go.uber.org/zap
+
+Test Implementation:
+func TestCreateMany(t *testing.T) {
+    ctx := context.Background()
+
+    // Mock dependencies
+    mockTestCaseDB := new(platformMocks.TestCaseDB)
+    mockLogger := zap.NewNop()
+
+    // Input test cases
+    inputTestCases := []models.TestCase{
+        {ID: "test-id-1", TestSetID: "test-set-id-1"},
+        {ID: "test-id-2", TestSetID: "test-set-id-2"},
+    }
+
+    // Mock behavior
+    mockTestCaseDB.On("InsertMany", ctx, inputTestCases).
+        Return(true, nil)
+
+    // Create service
+    service := &testcaseService{
+        testCaseDb: mockTestCaseDB,
+        logger:     mockLogger,
+    }
+
+    // Call the method
+    success, err := service.CreateMany(ctx, inputTestCases, "")
+
+    // Assertions
+    require.NoError(t, err)
+    require.True(t, success)
+
+    // Verify expectations
+    mockTestCaseDB.AssertExpectations(t)
+}
+
+
+Error Message:
+pkg/service/record/testcase_test.go:6:5: "github.com/stretchr/testify/mock" imported and not used
+-------------------------------------------------
+
