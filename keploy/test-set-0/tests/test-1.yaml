@@ -1,0 +1,40 @@
+version: api.keploy.io/v1beta1
+kind: Http
+name: test-1
+spec:
+    metadata: {}
+    req:
+        method: GET
+        proto_major: 1
+        proto_minor: 1
+        url: http://localhost:8081/process1
+        header:
+            Accept: '*/*'
+            Host: localhost:8081
+            User-Agent: curl/7.88.1
+        body: ""
+        timestamp: 2024-10-25T15:32:54.564162538+05:30
+    resp:
+        status_code: 500
+        header:
+            Content-Length: "30"
+            Content-Type: text/plain; charset=utf-8
+            Date: Fri, 25 Oct 2024 10:02:59 GMT
+            X-Content-Type-Options: nosniff
+        body: |
+            Failed to fetch external data
+        status_message: Internal Server Error
+        proto_major: 0
+        proto_minor: 0
+        timestamp: 2024-10-25T15:33:01.655620006+05:30
+    objects: []
+    assertions:
+        noise:
+            header.Date: []
+    created: 1729850581
+curl: |
+    curl --request GET \
+      --url http://localhost:8081/process1 \
+      --header 'Accept: */*' \
+      --header 'Host: localhost:8081' \
+      --header 'User-Agent: curl/7.88.1' \

@@ -1,0 +1,319 @@
+Iteration-1
+
+--------------------Test Case--------------------
+Import Statements:
+import (
+    "context"
+    "errors"
+    "testing"
+    "github.com/stretchr/testify/assert"
+    "github.com/stretchr/testify/require"
+    platformMocks "github.com/keploy/api-server/mocks/pkg/platform"
+    "github.com/keploy/api-server/pkg/models"
+    "go.uber.org/zap"
+)
+
+Required Library Installation
+go get github.com/stretchr/testify
+
+Test Implementation:
+func TestValidateKey_InvalidAPIKey(t *testing.T) {
+    // Arrange
+    ctx := context.Background()
+    apiRequest := &models.APIKeyReq{
+        APIKey: "invalid-api-key",
+    }
+    mockUserDB := new(platformMocks.UserDB)
+    mockCompanyDB := new(platformMocks.CompanyDB)
+    mockLogger := zap.NewNop()
+
+    mockUserDB.On("FindByKey", ctx, "invalid-api-key").Return(nil, errors.New("user not found"))
+
+    authSvc := New(mockUserDB, mockCompanyDB, mockLogger)
+
+    // Act
+    res, err := authSvc.ValidateKey(ctx, apiRequest)
+
+    // Assert
+    require.Error(t, err)
+    assert.NotNil(t, res)
+    assert.False(t, res.IsValid)
+    assert.Equal(t, models.ErrAuth, err)
+
+    mockUserDB.AssertExpectations(t)
+    mockCompanyDB.AssertExpectations(t)
+}
+
+
+Error Message:
+pkg/service/auth/auth_test.go:14:5: expected declaration, found "context"
+-------------------------------------------------
+
+--------------------Test Case--------------------
+Import Statements:
+import (
+    "context"
+    "testing"
+    "github.com/stretchr/testify/assert"
+    "github.com/stretchr/testify/require"
+    platformMocks "github.com/keploy/api-server/mocks/pkg/platform"
+    "github.com/keploy/api-server/pkg/models"
+    "go.uber.org/zap"
+)
+
+Required Library Installation
+go get github.com/stretchr/testify
+
+Test Implementation:
+func TestValidateKey_UserInactive(t *testing.T) {
+    // Arrange
+    ctx := context.Background()
+    apiRequest := &models.APIKeyReq{
+        APIKey: "valid-api-key",
+    }
+    mockUserDB := new(platformMocks.UserDB)
+    mockCompanyDB := new(platformMocks.CompanyDB)
+    mockLogger := zap.NewNop()
+
+    user := &models.User{
+        Name:   "Test User",
+        Email:  "test@example.com",
+        Status: models.UserStatusInactive,
+    }
+
+    mockUserDB.On("FindByKey", ctx, "valid-api-key").Return(user, nil)
+
+    authSvc := New(mockUserDB, mockCompanyDB, mockLogger)
+
+    // Act
+    res, err := authSvc.ValidateKey(ctx, apiRequest)
+
+    // Assert
+    require.NoError(t, err)
+    assert.NotNil(t, res)
+    assert.False(t, res.IsValid)
+    assert.Equal(t, "user is inactivated", res.Error)
+
+    mockUserDB.AssertExpectations(t)
+    mockCompanyDB.AssertExpectations(t)
+}
+
+
+Error Message:
+pkg/service/auth/auth_test.go:14:5: expected declaration, found "context"
+-------------------------------------------------
+
+--------------------Test Case--------------------
+Import Statements:
+import (
+    "context"
+    "testing"
+    "github.com/stretchr/testify/assert"
+    "github.com/stretchr/testify/require"
+    platformMocks "github.com/keploy/api-server/mocks/pkg/platform"
+    "github.com/keploy/api-server/pkg/models"
+    "go.uber.org/zap"
+)
+
+Required Library Installation
+go get github.com/stretchr/testify
+
+Test Implementation:
+func TestValidateKey_ValidUser(t *testing.T) {
+    // Arrange
+    ctx := context.Background()
+    apiRequest := &models.APIKeyReq{
+        APIKey: "valid-api-key",
+    }
+    mockUserDB := new(platformMocks.UserDB)
+    mockCompanyDB := new(platformMocks.CompanyDB)
+    mockLogger := zap.NewNop()
+
+    user := &models.User{
+        Name:   "Test User",
+        Email:  "test@example.com",
+        Status: models.UserStatusActive,
+        Role:   models.UserRoleCICD,
+        Cid:    "test-company-id",
+    }
+
+    mockUserDB.On("FindByKey", ctx, "valid-api-key").Return(user, nil)
+    mockUserDB.On("MapKeywithID", ctx, "valid-api-key", "").Return(true, nil)
+    mockCompanyDB.On("GetCompanyByCid", ctx, "test-company-id").Return(&models.Company{}, nil)
+
+    authSvc := New(mockUserDB, mockCompanyDB, mockLogger)
+
+    // Act
+    res, err := authSvc.ValidateKey(ctx, apiRequest)
+
+    // Assert
+    require.NoError(t, err)
+    assert.NotNil(t, res)
+    assert.True(t, res.IsValid)
+    assert.NotEmpty(t, res.JwtToken)
+
+    mockUserDB.AssertExpectations(t)
+    mockCompanyDB.AssertExpectations(t)
+}
+
+
+Error Message:
+pkg/service/auth/auth_test.go:14:5: expected declaration, found "context"
+-------------------------------------------------
+
+Iteration-2
+
+--------------------Test Case--------------------
+Import Statements:
+import (
+    "context"
+    "errors"
+    "testing"
+
+    "github.com/stretchr/testify/assert"
+    "github.com/stretchr/testify/require"
+    platformMocks "github.com/keploy/api-server/mocks/pkg/platform"
+    "github.com/keploy/api-server/pkg/models"
+    "go.uber.org/zap"
+)
+
+Test Implementation:
+func TestValidateKey_InvalidAPIKey(t *testing.T) {
+    // Arrange
+    ctx := context.Background()
+    apiRequest := &models.APIKeyReq{
+        APIKey: "invalid-api-key",
+    }
+    mockUserDB := new(platformMocks.UserDB)
+    mockCompanyDB := new(platformMocks.CompanyDB)
+    mockLogger := zap.NewNop()
+
+    mockUserDB.On("FindByKey", ctx, "invalid-api-key").Return(nil, errors.New("user not found"))
+
+    authSvc := New(mockUserDB, mockCompanyDB, mockLogger)
+
+    // Act
+    res, err := authSvc.ValidateKey(ctx, apiRequest)
+
+    // Assert
+    require.Error(t, err)
+    assert.NotNil(t, res)
+    assert.False(t, res.IsValid)
+    assert.Equal(t, models.ErrAuth, err)
+
+    mockUserDB.AssertExpectations(t)
+    mockCompanyDB.AssertExpectations(t)
+}
+
+
+Error Message:
+pkg/service/auth/auth_test.go:14:5: expected declaration, found "context"
+-------------------------------------------------
+
+--------------------Test Case--------------------
+Import Statements:
+import (
+    "context"
+    "testing"
+
+    "github.com/stretchr/testify/assert"
+    "github.com/stretchr/testify/require"
+    platformMocks "github.com/keploy/api-server/mocks/pkg/platform"
+    "github.com/keploy/api-server/pkg/models"
+    "go.uber.org/zap"
+)
+
+Test Implementation:
+func TestValidateKey_UserInactive(t *testing.T) {
+    // Arrange
+    ctx := context.Background()
+    apiRequest := &models.APIKeyReq{
+        APIKey: "valid-api-key",
+    }
+    mockUserDB := new(platformMocks.UserDB)
+    mockCompanyDB := new(platformMocks.CompanyDB)
+    mockLogger := zap.NewNop()
+
+    user := &models.User{
+        Name:   "Test User",
+        Email:  "test@example.com",
+        Status: models.UserStatusInactive,
+    }
+
+    mockUserDB.On("FindByKey", ctx, "valid-api-key").Return(user, nil)
+
+    authSvc := New(mockUserDB, mockCompanyDB, mockLogger)
+
+    // Act
+    res, err := authSvc.ValidateKey(ctx, apiRequest)
+
+    // Assert
+    require.NoError(t, err)
+    assert.NotNil(t, res)
+    assert.False(t, res.IsValid)
+    assert.Equal(t, "user is inactivated", res.Error)
+
+    mockUserDB.AssertExpectations(t)
+    mockCompanyDB.AssertExpectations(t)
+}
+
+
+Error Message:
+pkg/service/auth/auth_test.go:14:5: expected declaration, found "context"
+-------------------------------------------------
+
+--------------------Test Case--------------------
+Import Statements:
+import (
+    "context"
+    "testing"
+
+    "github.com/stretchr/testify/assert"
+    "github.com/stretchr/testify/require"
+    platformMocks "github.com/keploy/api-server/mocks/pkg/platform"
+    "github.com/keploy/api-server/pkg/models"
+    "go.uber.org/zap"
+)
+
+Test Implementation:
+func TestValidateKey_ValidUser(t *testing.T) {
+    // Arrange
+    ctx := context.Background()
+    apiRequest := &models.APIKeyReq{
+        APIKey: "valid-api-key",
+    }
+    mockUserDB := new(platformMocks.UserDB)
+    mockCompanyDB := new(platformMocks.CompanyDB)
+    mockLogger := zap.NewNop()
+
+    user := &models.User{
+        Name:   "Test User",
+        Email:  "test@example.com",
+        Status: models.UserStatusActive,
+        Role:   models.UserRoleCICD,
+        Cid:    "test-company-id",
+    }
+
+    mockUserDB.On("FindByKey", ctx, "valid-api-key").Return(user, nil)
+    mockCompanyDB.On("GetCompanyByCid", ctx, "test-company-id").Return(&models.Company{}, nil)
+
+    authSvc := New(mockUserDB, mockCompanyDB, mockLogger)
+
+    // Act
+    res, err := authSvc.ValidateKey(ctx, apiRequest)
+
+    // Assert
+    require.NoError(t, err)
+    assert.NotNil(t, res)
+    assert.True(t, res.IsValid)
+    assert.NotEmpty(t, res.JwtToken)
+
+    mockUserDB.AssertExpectations(t)
+    mockCompanyDB.AssertExpectations(t)
+}
+
+
+Error Message:
+pkg/service/auth/auth_test.go:14:5: expected declaration, found "context"
+-------------------------------------------------
+

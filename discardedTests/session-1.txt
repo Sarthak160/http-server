@@ -1,0 +1,444 @@
+Iteration-1
+
+--------------------Test Case--------------------
+Import Statements:
+import (
+    "context"
+    "testing"
+
+    "github.com/stretchr/testify/assert"
+    "github.com/stretchr/testify/require"
+    "github.com/keploy/api-server/pkg/models"
+    "github.com/keploy/api-server/mocks/platform"
+    "go.uber.org/zap"
+)
+
+Required Library Installation
+go get github.com/stretchr/testify
+
+Test Implementation:
+func TestCreate_ExistingTestSet(t *testing.T) {
+    ctx := context.Background()
+    testSet := &models.TestSet{
+        ID:    "test-id",
+        Name:  "test-name",
+        AppID: "app-id",
+    }
+    email := "test@example.com"
+
+    mockTestSetDB := new(platform.MockTestSetDB)
+    mockLogger := zap.NewNop()
+
+    existingTestSet := models.TestSet{
+        ID:    "existing-id",
+        Name:  "test-name",
+        AppID: "app-id",
+    }
+
+    mockTestSetDB.On("FindByUserAppAndTestSetName", ctx, testSet.Name, testSet.AppID, email).Return(existingTestSet, nil)
+    mockTestSetDB.On("Update", ctx, existingTestSet.ID, testSet).Return(true, nil)
+
+    service := &testSetService{
+        testSetDb: mockTestSetDB,
+        logger:    mockLogger,
+    }
+
+    id, updated, err := service.Create(ctx, testSet, email)
+
+    require.NoError(t, err)
+    assert.Equal(t, existingTestSet.ID, id)
+    assert.True(t, updated)
+
+    mockTestSetDB.AssertExpectations(t)
+}
+
+
+-------------------------------------------------
+
+--------------------Test Case--------------------
+Import Statements:
+import (
+    "context"
+    "errors"
+    "testing"
+
+    "github.com/stretchr/testify/assert"
+    "github.com/stretchr/testify/require"
+    "github.com/keploy/api-server/pkg/models"
+    "github.com/keploy/api-server/mocks/platform"
+    "go.uber.org/zap"
+)
+
+Required Library Installation
+go get github.com/stretchr/testify
+
+Test Implementation:
+func TestCreate_NewTestSet(t *testing.T) {
+    ctx := context.Background()
+    testSet := &models.TestSet{
+        ID:    "new-test-id",
+        Name:  "new-test-name",
+        AppID: "app-id",
+    }
+    email := "test@example.com"
+
+    mockTestSetDB := new(platform.MockTestSetDB)
+    mockLogger := zap.NewNop()
+
+    mockTestSetDB.On("FindByUserAppAndTestSetName", ctx, testSet.Name, testSet.AppID, email).Return(models.TestSet{}, errors.New("not found"))
+    mockTestSetDB.On("Insert", ctx, testSet).Return(true, nil)
+
+    service := &testSetService{
+        testSetDb: mockTestSetDB,
+        logger:    mockLogger,
+    }
+
+    id, updated, err := service.Create(ctx, testSet, email)
+
+    require.NoError(t, err)
+    assert.Equal(t, testSet.ID, id)
+    assert.True(t, updated)
+
+    mockTestSetDB.AssertExpectations(t)
+}
+
+
+-------------------------------------------------
+
+--------------------Test Case--------------------
+Import Statements:
+import (
+    "context"
+    "testing"
+
+    "github.com/stretchr/testify/assert"
+    "github.com/stretchr/testify/require"
+    "github.com/keploy/api-server/pkg/models"
+    "github.com/keploy/api-server/mocks/platform"
+    "go.uber.org/zap"
+)
+
+Required Library Installation
+go get github.com/stretchr/testify
+
+Test Implementation:
+func TestGetAll(t *testing.T) {
+    ctx := context.Background()
+    appID := "app-id"
+    offset := int64(0)
+    limit := int64(10)
+
+    mockTestSetDB := new(platform.MockTestSetDB)
+    mockLogger := zap.NewNop()
+
+    testSets := []models.TestSet{
+        {ID: "test-id-1", Name: "test-name-1", AppID: appID},
+        {ID: "test-id-2", Name: "test-name-2", AppID: appID},
+    }
+
+    mockTestSetDB.On("FindAll", ctx, appID, offset, limit).Return(testSets, nil)
+
+    service := &testSetService{
+        testSetDb: mockTestSetDB,
+        logger:    mockLogger,
+    }
+
+    result, err := service.GetAll(ctx, appID, offset, limit)
+
+    require.NoError(t, err)
+    assert.Equal(t, testSets, result)
+
+    mockTestSetDB.AssertExpectations(t)
+}
+
+
+-------------------------------------------------
+
+--------------------Test Case--------------------
+Import Statements:
+import (
+    "context"
+    "testing"
+
+    "github.com/stretchr/testify/assert"
+    "github.com/stretchr/testify/require"
+    "github.com/keploy/api-server/mocks/platform"
+    "go.uber.org/zap"
+)
+
+Required Library Installation
+go get github.com/stretchr/testify
+
+Test Implementation:
+func TestDelete(t *testing.T) {
+    ctx := context.Background()
+    testSetID := "test-id"
+
+    mockTestSetDB := new(platform.MockTestSetDB)
+    mockLogger := zap.NewNop()
+
+    mockTestSetDB.On("Delete", ctx, testSetID).Return(true, nil)
+
+    service := &testSetService{
+        testSetDb: mockTestSetDB,
+        logger:    mockLogger,
+    }
+
+    result, err := service.Delete(ctx, testSetID)
+
+    require.NoError(t, err)
+    assert.True(t, result)
+
+    mockTestSetDB.AssertExpectations(t)
+}
+
+
+-------------------------------------------------
+
+Iteration-2
+
+--------------------Test Case--------------------
+Import Statements:
+import (
+    "context"
+    "errors"
+    "testing"
+
+    "github.com/keploy/api-server/pkg/models"
+    "github.com/keploy/api-server/pkg/platform"
+    "github.com/stretchr/testify/assert"
+    "github.com/stretchr/testify/require"
+    "go.uber.org/zap"
+)
+
+Required Library Installation
+go get github.com/stretchr/testify
+
+Test Implementation:
+func TestCreate_UpdateFailure(t *testing.T) {
+    ctx := context.Background()
+    testSet := &models.TestSet{
+        ID:    "test-id",
+        Name:  "test-name",
+        AppID: "app-id",
+    }
+    email := "test@example.com"
+
+    mockTestSetDB := new(platform.MockTestSetDB)
+    mockLogger := zap.NewNop()
+
+    existingTestSet := models.TestSet{
+        ID:    "existing-id",
+        Name:  "test-name",
+        AppID: "app-id",
+    }
+
+    mockTestSetDB.On("FindByUserAppAndTestSetName", ctx, testSet.Name, testSet.AppID, email).Return(existingTestSet, nil)
+    mockTestSetDB.On("Update", ctx, existingTestSet.ID, testSet).Return(false, errors.New("update failed"))
+
+    service := &testSetService{
+        testSetDb: mockTestSetDB,
+        logger:    mockLogger,
+    }
+
+    id, updated, err := service.Create(ctx, testSet, email)
+
+    require.Error(t, err)
+    assert.Equal(t, "", id)
+    assert.True(t, updated)
+
+    mockTestSetDB.AssertExpectations(t)
+}
+
+
+Error Message:
+pkg/service/record/testSet_test.go:25:35: undefined: platform.MockTestSetDB
+-------------------------------------------------
+
+--------------------Test Case--------------------
+Import Statements:
+import (
+    "context"
+    "errors"
+    "testing"
+
+    "github.com/keploy/api-server/pkg/models"
+    "github.com/keploy/api-server/pkg/platform"
+    "github.com/stretchr/testify/assert"
+    "github.com/stretchr/testify/require"
+    "go.uber.org/zap"
+)
+
+Required Library Installation
+go get github.com/stretchr/testify
+
+Test Implementation:
+func TestGetByID_NotFound(t *testing.T) {
+    ctx := context.Background()
+    testSetID := "non-existent-id"
+
+    mockTestSetDB := new(platform.MockTestSetDB)
+    mockLogger := zap.NewNop()
+
+    mockTestSetDB.On("FindByID", ctx, testSetID).Return(models.TestSet{}, errors.New("not found"))
+
+    service := &testSetService{
+        testSetDb: mockTestSetDB,
+        logger:    mockLogger,
+    }
+
+    result, err := service.GetByID(ctx, testSetID)
+
+    require.Error(t, err)
+    assert.Equal(t, models.TestSet{}, result)
+
+    mockTestSetDB.AssertExpectations(t)
+}
+
+
+Error Message:
+pkg/service/record/testSet_test.go:20:35: undefined: platform.MockTestSetDB
+-------------------------------------------------
+
+--------------------Test Case--------------------
+Import Statements:
+import (
+    "context"
+    "errors"
+    "testing"
+
+    "github.com/keploy/api-server/pkg/models"
+    "github.com/keploy/api-server/pkg/platform"
+    "github.com/stretchr/testify/assert"
+    "github.com/stretchr/testify/require"
+    "go.uber.org/zap"
+)
+
+Required Library Installation
+go get github.com/stretchr/testify
+
+Test Implementation:
+func TestUpdate_Failure(t *testing.T) {
+    ctx := context.Background()
+    testSetID := "test-id"
+    testSet := &models.TestSet{
+        ID:    testSetID,
+        Name:  "updated-name",
+        AppID: "app-id",
+    }
+
+    mockTestSetDB := new(platform.MockTestSetDB)
+    mockLogger := zap.NewNop()
+
+    mockTestSetDB.On("Update", ctx, testSetID, testSet).Return(false, errors.New("update failed"))
+
+    service := &testSetService{
+        testSetDb: mockTestSetDB,
+        logger:    mockLogger,
+    }
+
+    result, err := service.Update(ctx, testSetID, testSet)
+
+    require.Error(t, err)
+    assert.False(t, result)
+
+    mockTestSetDB.AssertExpectations(t)
+}
+
+
+Error Message:
+pkg/service/record/testSet_test.go:25:35: undefined: platform.MockTestSetDB
+-------------------------------------------------
+
+--------------------Test Case--------------------
+Import Statements:
+import (
+    "context"
+    "errors"
+    "testing"
+
+    "github.com/keploy/api-server/pkg/models"
+    "github.com/keploy/api-server/pkg/platform"
+    "github.com/stretchr/testify/assert"
+    "github.com/stretchr/testify/require"
+    "go.uber.org/zap"
+)
+
+Required Library Installation
+go get github.com/stretchr/testify
+
+Test Implementation:
+func TestDelete_Failure(t *testing.T) {
+    ctx := context.Background()
+    testSetID := "test-id"
+
+    mockTestSetDB := new(platform.MockTestSetDB)
+    mockLogger := zap.NewNop()
+
+    mockTestSetDB.On("Delete", ctx, testSetID).Return(false, errors.New("delete failed"))
+
+    service := &testSetService{
+        testSetDb: mockTestSetDB,
+        logger:    mockLogger,
+    }
+
+    result, err := service.Delete(ctx, testSetID)
+
+    require.Error(t, err)
+    assert.False(t, result)
+
+    mockTestSetDB.AssertExpectations(t)
+}
+
+
+Error Message:
+pkg/service/record/testSet_test.go:7:5: "github.com/keploy/api-server/pkg/models" imported and not used
+pkg/service/record/testSet_test.go:20:35: undefined: platform.MockTestSetDB
+-------------------------------------------------
+
+Iteration-3
+
+--------------------Test Case--------------------
+Import Statements:
+import (
+    "context"
+    "errors"
+    "testing"
+
+    "github.com/stretchr/testify/assert"
+    "github.com/stretchr/testify/require"
+    "go.uber.org/zap"
+    
+    "github.com/keploy/api-server/pkg/models"
+    mockPlatform "github.com/keploy/api-server/mocks/pkg/platform"
+)
+
+Required Library Installation
+go get github.com/stretchr/testify
+
+Test Implementation:
+func TestNewTestSetService(t *testing.T) {
+    logger := zap.NewNop()
+    mockUserDB := new(mockPlatform.UserDB)
+    mockTestSetDB := new(mockPlatform.TestSetDB)
+
+    svc := NewTestSetService(mockUserDB, mockTestSetDB, logger)
+    assert.NotNil(t, svc)
+}
+
+
+Error Message:
+pkg/service/record/testSet_test.go:4:5: "context" imported and not used
+pkg/service/record/testSet_test.go:5:5: "errors" imported and not used
+pkg/service/record/testSet_test.go:8:5: "github.com/stretchr/testify/require" imported and not used
+pkg/service/record/testSet_test.go:10:5: "github.com/keploy/api-server/pkg/models" imported and not used
+-------------------------------------------------
+
+--------------------Test Case--------------------
+Test Implementation:
+func TestGetAll_S
+
+Error Message:
+pkg/service/record/testSet_test.go:123:18: expected '(', found newline
+-------------------------------------------------
+

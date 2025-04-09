@@ -1,0 +1,39 @@
+version: api.keploy.io/v1beta1
+kind: Http
+name: test-1
+spec:
+    metadata: {}
+    req:
+        method: GET
+        proto_major: 1
+        proto_minor: 1
+        url: http://localhost:8080/ping
+        header:
+            Accept-Encoding: gzip
+            Host: localhost:8080
+            User-Agent: Go-http-client/1.1
+        body: ""
+        timestamp: 2024-10-25T17:01:34.577420316+05:30
+    resp:
+        status_code: 200
+        header:
+            Content-Length: "36"
+            Content-Type: text/plain; charset=utf-8
+            Date: Fri, 25 Oct 2024 11:31:34 GMT
+        body: |
+            Hello from the main process server!
+        status_message: OK
+        proto_major: 0
+        proto_minor: 0
+        timestamp: 2024-10-25T17:01:37.08096657+05:30
+    objects: []
+    assertions:
+        noise:
+            header.Date: []
+    created: 1729855897
+curl: |
+    curl --request GET \
+      --url http://localhost:8080/ping \
+      --header 'Accept-Encoding: gzip' \
+      --header 'Host: localhost:8080' \
+      --header 'User-Agent: Go-http-client/1.1' \

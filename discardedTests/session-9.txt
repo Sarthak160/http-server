@@ -1,0 +1,372 @@
+Iteration-1
+
+--------------------Test Case--------------------
+Import Statements:
+import (
+    "context"
+    "testing"
+
+    platformMocks "github.com/keploy/api-server/mocks/pkg/platform"
+    "github.com/keploy/api-server/pkg/models"
+    "github.com/stretchr/testify/mock"
+    "github.com/stretchr/testify/require"
+    "go.uber.org/zap"
+)
+
+Required Library Installation
+go get github.com/stretchr/testify
+
+Test Implementation:
+func TestCreateUserSuccess(t *testing.T) {
+    ctx := context.WithValue(context.Background(), models.CustomClaimsKey, models.Claims{
+        Cid:   "test-cid",
+        Email: "admin@example.com",
+    })
+
+    adminUser := &models.User{
+        Email: "admin@example.com",
+        Cid:   "test-cid",
+    }
+
+    newUser := models.User{
+        Name:  "Test User",
+        Email: "test@example.com",
+        Role:  models.UserRoleUser,
+        Cid:   "test-cid",
+    }
+
+    mockUserDB := new(platformMocks.UserDB)
+    mockCompanyDB := new(platformMocks.CompanyDB)
+    mockLogger := zap.NewNop()
+
+    mockUserDB.On("FindByEmail", ctx, "admin@example.com").Return(adminUser, nil)
+    mockCompanyDB.On("CreateCompany", ctx, mock.Anything).Return(true, nil)
+    mockUserDB.On("Create", ctx, mock.Anything, false).Return(true, nil)
+
+    service := &userService{
+        udb:    mockUserDB,
+        cdb:    mockCompanyDB,
+        logger: mockLogger,
+    }
+
+    created, err := service.Create(ctx, newUser)
+
+    require.NoError(t, err)
+    require.True(t, created)
+
+    mockUserDB.AssertExpectations(t)
+    mockCompanyDB.AssertExpectations(t)
+}
+
+
+-------------------------------------------------
+
+--------------------Test Case--------------------
+Import Statements:
+import (
+    "context"
+    "errors"
+    "testing"
+
+    platformMocks "github.com/keploy/api-server/mocks/pkg/platform"
+    "github.com/keploy/api-server/pkg/models"
+    "github.com/stretchr/testify/mock"
+    "github.com/stretchr/testify/require"
+    "go.uber.org/zap"
+)
+
+Required Library Installation
+go get github.com/stretchr/testify
+
+Test Implementation:
+func TestCreateUserAdminNotFound(t *testing.T) {
+    ctx := context.WithValue(context.Background(), models.CustomClaimsKey, models.Claims{
+        Cid:   "test-cid",
+        Email: "admin@example.com",
+    })
+
+    newUser := models.User{
+        Name:  "Test User",
+        Email: "test@example.com",
+        Role:  models.UserRoleUser,
+        Cid:   "test-cid",
+    }
+
+    mockUserDB := new(platformMocks.UserDB)
+    mockLogger := zap.NewNop()
+
+    mockUserDB.On("FindByEmail", ctx, "admin@example.com").Return(nil, errors.New("admin not found"))
+
+    service := &userService{
+        udb:    mockUserDB,
+        logger: mockLogger,
+    }
+
+    created, err := service.Create(ctx, newUser)
+
+    require.Error(t, err)
+    require.False(t, created)
+
+    mockUserDB.AssertExpectations(t)
+}
+
+
+Error Message:
+pkg/service/user/user_test.go:12:5: "github.com/stretchr/testify/mock" imported and not used
+-------------------------------------------------
+
+Iteration-2
+
+--------------------Test Case--------------------
+Import Statements:
+import (
+    "context"
+    "testing"
+    platformMocks "github.com/keploy/api-server/mocks/pkg/platform"
+    "github.com/keploy/api-server/pkg/models"
+    "github.com/stretchr/testify/require"
+    "go.uber.org/zap"
+)
+
+Test Implementation:
+func TestCreateUserSuccess(t *testing.T) {
+    ctx := context.WithValue(context.Background(), models.CustomClaimsKey, models.Claims{
+        Cid:   "test-cid",
+        Email: "admin@example.com",
+    })
+
+    adminUser := &models.User{
+        Email: "admin@example.com",
+        Cid:   "test-cid",
+    }
+
+    newUser := models.User{
+        Name:  "Test User",
+        Email: "test@example.com",
+        Role:  models.UserRoleUser,
+        Cid:   "test-cid",
+    }
+
+    mockUserDB := new(platformMocks.UserDB)
+    mockCompanyDB := new(platformMocks.CompanyDB)
+    mockLogger := zap.NewNop()
+
+    mockUserDB.On("FindByEmail", ctx, "admin@example.com").Return(adminUser, nil)
+    mockCompanyDB.On("CreateCompany", ctx, mock.Anything).Return(true, nil)
+    mockUserDB.On("Create", ctx, mock.Anything, false).Return(true, nil)
+
+    service := &userService{
+        udb:    mockUserDB,
+        cdb:    mockCompanyDB,
+        logger: mockLogger,
+    }
+
+    created, err := service.Create(ctx, newUser)
+
+    require.NoError(t, err)
+    require.True(t, created)
+
+    mockUserDB.AssertExpectations(t)
+    mockCompanyDB.AssertExpectations(t)
+}
+
+
+-------------------------------------------------
+
+Iteration-3
+
+--------------------Test Case--------------------
+Import Statements:
+import (
+  "context"
+  "testing"
+  "errors"
+
+  "github.com/stretchr/testify/require"
+  "github.com/stretchr/testify/mock"
+  "go.uber.org/zap"
+
+  // Mocks
+  platformMocks "github.com/keploy/api-server/mocks/pkg/platform"
+
+  // Models
+  "github.com/keploy/api-server/pkg/models"
+)
+
+Test Implementation:
+func TestCreateUserSuccess(t *testing.T) {
+    ctx := context.WithValue(context.Background(), models.CustomClaimsKey, models.Claims{
+        Cid:   "test-cid",
+        Email: "admin@example.com",
+    })
+
+    // Admin user with Role set to UserRoleAdmin
+    adminUser := &models.User{
+        Email: "admin@example.com",
+        Cid:   "test-cid",
+        Role:  models.UserRoleAdmin,
+    }
+
+    newUser := models.User{
+        Name:  "Test User",
+        Email: "test@example.com",
+        Role:  models.UserRoleUser,
+        Cid:   "test-cid",
+    }
+
+    mockUserDB := new(platformMocks.UserDB)
+    mockCompanyDB := new(platformMocks.CompanyDB)
+    mockLogger := zap.NewNop()
+
+    // Mock the required calls
+    mockUserDB.On("FindByEmail", ctx, "admin@example.com").Return(adminUser, nil)
+    mockCompanyDB.On("CreateCompany", ctx, mock.Anything).Return(true, nil)
+    mockUserDB.On("Create", ctx, mock.Anything, false).Return(true, nil)
+
+    service := &userService{
+        udb:    mockUserDB,
+        cdb:    mockCompanyDB,
+        logger: mockLogger,
+    }
+
+    created, err := service.Create(ctx, newUser)
+
+    require.NoError(t, err)
+    require.True(t, created)
+
+    mockUserDB.AssertExpectations(t)
+    mockCompanyDB.AssertExpectations(t)
+
+
+Error Message:
+pkg/service/user/user_test.go:200:41: expected '}', found 'EOF'
+-------------------------------------------------
+
+Iteration-4
+
+--------------------Test Case--------------------
+Import Statements:
+import (
+  "context"
+  "testing"
+  "errors"
+
+  platformMocks "github.com/keploy/api-server/mocks/pkg/platform"
+  "github.com/keploy/api-server/pkg/models"
+  "github.com/stretchr/testify/mock"
+  "github.com/stretchr/testify/require"
+  "go.uber.org/zap"
+)
+
+Required Library Installation
+go get github.com/stretchr/testify
+
+Test Implementation:
+func TestCreateUserSuccess(t *testing.T) {
+    ctx := context.WithValue(context.Background(), models.CustomClaimsKey, models.Claims{
+        Cid:   "test-cid",
+        Email: "admin@example.com",
+    })
+
+    // Admin user
+    adminUser := &models.User{
+        Email: "admin@example.com",
+        Cid:   "test-cid",
+        Role:  models.UserRoleAdmin,
+    }
+
+    // New user to create
+    newUser := models.User{
+        Name:  "Test User",
+        Email: "test@example.com",
+        Role:  models.UserRoleUser,
+        Cid:   "test-cid",
+    }
+
+    mockUserDB := new(platformMocks.UserDB)
+    mockCompanyDB := new(platformMocks.CompanyDB)
+    mockLogger := zap.NewNop()
+
+    // Mock calls
+    mockUserDB.On("FindByEmail", ctx, "admin@example.com").Return(adminUser, nil)
+    mockCompanyDB.On("CreateCompany", ctx, mock.Anything).Return(true, nil)
+    mockUserDB.On("Create", ctx, mock.Anything, false).Return(true, nil)
+
+    service := &userService{
+        udb:    mockUserDB,
+        cdb:    mockCompanyDB,
+        logger: mockLogger,
+    }
+
+    created, err := service.Create(ctx, newUser)
+
+    require.NoError(t, err)
+    require.True(t, created)
+
+    mockUserDB.AssertExpectations(t)
+    mockCompanyDB.AssertExpectations(t)
+}
+
+
+-------------------------------------------------
+
+--------------------Test Case--------------------
+Test Implementation:
+func TestSubscribeUserError(t *testing.T) {
+    ctx := context.Background()
+    guestUser := models.GuestUser{
+        ID:       "guest-id",
+        FullName: "Guest User",
+        Email:    "guest@example.com",
+    }
+
+    mockUserDB := new(platformMocks.UserDB)
+    mockLogger := zap.NewNop()
+
+    mockUserDB.On("AddSubscription", ctx, &guestUser).Return(false, errors.New("subscription error"))
+
+    service := &userService{
+        udb:    mock
+
+-------------------------------------------------
+
+Iteration-5
+
+--------------------Test Case--------------------
+Test Implementation:
+func TestCreateUserSuccess(t *testing.T) {
+    ctx := context.WithValue(context.Background(), models.CustomClaimsKey, models.Claims{
+        Cid:   "test-cid",
+        Email: "admin@example.com",
+    })
+
+    // Admin user
+    adminUser := &models.User{
+        Email: "admin@example.com",
+        Cid:   "test-cid",
+        Role:  models.UserRoleAdmin,
+    }
+
+    // New user to create
+    newUser := models.User{
+        Name:  "Test User",
+        Email: "test@example.com",
+        Role:  models.UserRoleUser,
+        Cid:   "test-cid",
+    }
+
+    mockUserDB := new(platformMocks.UserDB)
+    mockCompanyDB := new(platformMocks.CompanyDB)
+    mockLogger := zap.NewNop()
+
+    // Mock calls: user is found, is an admin, so creation proceeds
+    mockUserDB.On("FindByEmail", ctx, "admin@example.com").Return(adminUser, nil)
+    // If a new company is required, it's created successfully
+    mockCompanyDB.On("CreateCompany", ctx, mock.Anything).Return(true, nil)
+    // Creating the user in DB
+    mockUser
+
+Error Message:
+pkg/service/user/user_test.go:254:14: expected '}', found 'EOF'
+-------------------------------------------------
+
